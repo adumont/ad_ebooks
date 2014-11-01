@@ -43,7 +43,7 @@ def filter_tweet(tweet):
     tweet.text = re.sub(r'\xe9', 'e', tweet.text) #take out accented e
     return tweet.text
                      
-def grab_tweets(api, max_id=None):
+def grab_tweets(api, user, max_id=None):
     source_tweets=[]
     user_tweets = api.GetUserTimeline(screen_name=user, count=200, max_id=max_id, include_rts=True, trim_user=True, exclude_replies=True)
     returned_tweet_count = len(user_tweets)
@@ -109,6 +109,25 @@ def try_build_tweet(source_tweets):
             ebook_tweet = None
 			
 	return ebook_tweet
+    
+def get_source_tweets():
+    if STATIC_TEST==True:
+        file = TEST_SOURCE
+        print ">>> Generating from {0}".format(file)
+        string_list = open(file).readlines()
+        for item in string_list:
+            source_tweets = item.split(",")
+    else:
+        source_tweets = []
+        for handle in SOURCE_ACCOUNTS:
+            user=handle
+            api=connect()
+            max_id=None
+            for x in range(17)[1:]:
+                source_tweets_iter, max_id = grab_tweets(api,user,max_id)
+                source_tweets += source_tweets_iter   
+            print "{0} tweets found in {1}".format(len(source_tweets), handle)
+    return source_tweets
 	
 def post_tweet(ebook_tweet):
 	if DEBUG == False:
@@ -124,33 +143,21 @@ if __name__=="__main__":
     else:
         guess = 0
 
-    if guess == 0:
-        if STATIC_TEST==True:
-            file = TEST_SOURCE
-            print ">>> Generating from {0}".format(file)
-            string_list = open(file).readlines()
-            for item in string_list:
-                source_tweets = item.split(",")
-            print "{0} tweets found in {1}".format(len(source_tweets), file)
-        else:
-            source_tweets = []
-            for handle in SOURCE_ACCOUNTS:
-                user=handle
-                api=connect()
-                max_id=None
-                for x in range(17)[1:]:
-                    source_tweets_iter, max_id = grab_tweets(api,max_id)
-                    source_tweets += source_tweets_iter
-                print "{0} tweets found in {1}".format(len(source_tweets), handle)
-                
-                if len(source_tweets) == 0:
-                    print "Error fetching tweets from Twitter. Aborting."
-                    sys.exit()
-        for x in range(10):	#Try to build a good tweet from the source_tweets. If at first you don't succeed...
-            ebook_tweet = try_build_tweet(source_tweets)
-            if ebook_tweet != None:
-                print "Got a good tweet on iteration "+str(x)+": "+ebook_tweet
-                post_tweet(ebook_tweet)
-                break
-    else:
+    if guess > 0:
         print str(guess) + " No, sorry, not this time." #message if the random number fails.
+        sys.exit()
+        
+    source_tweets = get_source_tweets()
+            
+    if len(source_tweets) == 0:
+        print "Error fetching tweets from Twitter. Aborting."
+        sys.exit()
+    else:        
+        print "{0} total tweets found".format(len(source_tweets))
+        
+    for x in range(10):	#Try to build a good tweet from the source_tweets. If at first you don't succeed...
+        ebook_tweet = try_build_tweet(source_tweets)
+        if ebook_tweet != None:
+            print "Got a good tweet on iteration "+str(x)+": "+ebook_tweet
+            post_tweet(ebook_tweet)
+            break

@@ -43,46 +43,25 @@ def filter_tweet(tweet):
     tweet.text = re.sub(r'\xe9', 'e', tweet.text) #take out accented e
     return tweet.text
                      
-                     
-                                                    
 def grab_tweets(api, max_id=None):
     source_tweets=[]
     user_tweets = api.GetUserTimeline(screen_name=user, count=200, max_id=max_id, include_rts=True, trim_user=True, exclude_replies=True)
-    max_id = user_tweets[len(user_tweets)-1].id-1
+    returned_tweet_count = len(user_tweets)
+    
+    if returned_tweet_count-1 < 0: #Seems to fix issue #6. Still not sure WHY this happens; API sometimes returns nothing.
+        return source_tweets, 0
+
+    max_id = user_tweets[returned_tweet_count-1].id-1
+
     for tweet in user_tweets:
         tweet.text = filter_tweet(tweet)
         if len(tweet.text) != 0:
             source_tweets.append(tweet.text)
+
     return source_tweets, max_id
 
-if __name__=="__main__":
-    order = ORDER
-    if DEBUG==False:
-        guess = random.choice(range(ODDS))
-    else:
-        guess = 0
-
-    if guess == 0:
-        if STATIC_TEST==True:
-            file = TEST_SOURCE
-            print ">>> Generating from {0}".format(file)
-            string_list = open(file).readlines()
-            for item in string_list:
-                source_tweets = item.split(",")    
-        else:
-            source_tweets = []
-            for handle in SOURCE_ACCOUNTS:
-                user=handle
-                api=connect()
-                max_id=None
-                for x in range(17)[1:]:
-                    source_tweets_iter, max_id = grab_tweets(api,max_id)
-                    source_tweets += source_tweets_iter
-                print "{0} tweets found in {1}".format(len(source_tweets), handle)
-                if len(source_tweets) == 0:
-                    print "Error fetching tweets from Twitter. Aborting."
-                    sys.exit()
-        mine = markov.MarkovChainer(order)
+def try_build_tweet(source_tweets):
+	mine = markov.MarkovChainer(order)
         for tweet in source_tweets:
             if re.search('([\.\!\?\"\']$)', tweet):
                 pass
@@ -90,8 +69,7 @@ if __name__=="__main__":
                 tweet+="."
             mine.add_text(tweet)
             
-        for x in range(0,10):
-            ebook_tweet = mine.generate_sentence()
+        ebook_tweet = mine.generate_sentence()
 
         #randomly drop the last word, as Horse_ebooks appears to do.
         if random.randint(0,4) == 0 and re.search(r'(in|to|from|for|with|by|our|of|your|around|under|beyond)\s\w+$', ebook_tweet) != None: 
@@ -121,17 +99,58 @@ if __name__=="__main__":
                     continue
                 else: 
                     print "TOO SIMILAR: " + ebook_tweet
-                    sys.exit()
-                          
-            if DEBUG == False:
-                status = api.PostUpdate(ebook_tweet)
-                print status.text.encode('utf-8')
-            else:
-                print ebook_tweet
+                    ebook_tweet = None
+                    break;
 
         elif ebook_tweet == None:
-            print "Tweet is empty, sorry."
+            print "EMPTY TWEET"
         else:
             print "TOO LONG: " + ebook_tweet
+            ebook_tweet = None
+			
+	return ebook_tweet
+	
+def post_tweet(ebook_tweet):
+	if DEBUG == False:
+		status = api.PostUpdate(ebook_tweet)
+		print status.text.encode('utf-8')
+	else:
+		print ebook_tweet
+	
+if __name__=="__main__":
+    order = ORDER
+    if DEBUG==False:
+        guess = random.choice(range(ODDS))
+    else:
+        guess = 0
+
+    if guess == 0:
+        if STATIC_TEST==True:
+            file = TEST_SOURCE
+            print ">>> Generating from {0}".format(file)
+            string_list = open(file).readlines()
+            for item in string_list:
+                source_tweets = item.split(",")
+            print "{0} tweets found in {1}".format(len(source_tweets), file)
+        else:
+            source_tweets = []
+            for handle in SOURCE_ACCOUNTS:
+                user=handle
+                api=connect()
+                max_id=None
+                for x in range(17)[1:]:
+                    source_tweets_iter, max_id = grab_tweets(api,max_id)
+                    source_tweets += source_tweets_iter
+                print "{0} tweets found in {1}".format(len(source_tweets), handle)
+                
+                if len(source_tweets) == 0:
+                    print "Error fetching tweets from Twitter. Aborting."
+                    sys.exit()
+        for x in range(10):	#Try to build a good tweet from the source_tweets. If at first you don't succeed...
+            ebook_tweet = try_build_tweet(source_tweets)
+            if ebook_tweet != None:
+                print "Got a good tweet on iteration "+str(x)+": "+ebook_tweet
+                post_tweet(ebook_tweet)
+                break
     else:
         print str(guess) + " No, sorry, not this time." #message if the random number fails.

@@ -4,7 +4,7 @@ I'm no Python developer. Use caution with this script; I very well might have do
 
 # kyofu_ebooks
 
-Fork of tommeagher/heroku_ebooks. Fixed issue #6 (although possibly in an awkward/unintelligent fashion (see above warning). Primarily a refactor of the ebooks.py source to move more functionality into more methods (easier for me to understand and modify that way). Changed a couple of things I didn't understand and it doesn't appear to have broken, so we'll call it a win until I find out otherwise.
+Fork of tommeagher/heroku_ebooks. Fixed issue #6 (although possibly in an awkward/unintelligent fashion [see above warning]). Primarily a refactor of the ebooks.py source to move more functionality into more methods (easier for me to understand and modify that way). Changed a couple of things I didn't understand and it doesn't appear to have broken, so we'll call it a win until I find out otherwise.
 
 Renamed from heroku_ebooks to kyofu_ebooks since I don't use Heroku; works fine scheduled via a crontab.
 

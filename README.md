@@ -1,11 +1,15 @@
 # Warning
 
-I'm no Python developer. Use caution with this script, because I very well might have done something insanely stupid.
+I'm no Python developer. Use caution with this script; I very well might have done something insanely stupid.
 
-# kyofu_ebooks (Heroku_ebooks)
+# kyofu_ebooks
 
-Renamed since I don't use Heroku; works fine via scheduled via a crontab.
+Fork of tommeagher/heroku_ebooks. Fixed issue #6 (although possibly in an awkward/unintelligent fashion (see above warning). Primarily a refactor of the ebooks.py source to move more functionality into more methods (easier for me to understand and modify that way). Changed a couple of things I didn't understand and it doesn't appear to have broken, so we'll call it a win until I find out otherwise.
 
+Renamed from heroku_ebooks to kyofu_ebooks since I don't use Heroku; works fine scheduled via a crontab.
+
+# Heroku_ebooks
+ 
 This is a basic Python port of [@harrisj's](https://twitter.com/harrisj) [iron_ebooks](https://github.com/harrisj/iron_ebooks/) Ruby script. Using Heroku's scheduler, you can post to an _ebooks Twitter account based on the corpus of an existing Twitter at pseudorandom intervals. Currently, it is the magic behind [@adriennelaf_ebx](http://www.twitter.com/adriennelaf_ebx) and [@stevebuttry_ebx](http://www.twitter.com/stevebuttry_ebx).
 
 ## Setup

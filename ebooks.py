@@ -211,7 +211,7 @@ def main(argv):
         print "{0} total tweets found".format(len(source_tweets))
         
     # try to build a good tweet from the source_tweets. If at first you don't succeed...
-    for x in range(10):	
+    for x in range(20):	
         ebook_tweet = try_build_tweet(source_tweets, order)
         if ebook_tweet != None:
             print "Iteration: " + str(x)

@@ -138,10 +138,10 @@ def try_build_tweet(source_tweets, order):
     return ebook_tweet
     
 # get source tweets to drive tweet-making
-def get_source_tweets(api):
+def get_source_tweets(api, static_test):
     source_tweets = []
     # read strings from flat-file
-    if api == None:
+    if static_test == True:
         file = TEST_SOURCE
         print ">>> Generating from {0}".format(file)
         string_list = open(file).readlines()
@@ -163,8 +163,8 @@ def get_source_tweets(api):
     return source_tweets
 
 # post tweet to twitter (or console)
-def post_tweet(api, ebook_tweet):
-    if api == None:
+def post_tweet(api, debug, ebook_tweet):
+    if debug == True:
         print "DEBUG: " + ebook_tweet
     else:
         status = api.PostUpdate(ebook_tweet)
@@ -209,7 +209,7 @@ def main(argv):
         api = None
         
     # get tweets from the source account / flat file
-    source_tweets = get_source_tweets(api)
+    source_tweets = get_source_tweets(api, static_test)
     
     # make sure we have tweets to work with
     if len(source_tweets) == 0:
@@ -223,7 +223,7 @@ def main(argv):
         ebook_tweet = try_build_tweet(source_tweets, order)
         if ebook_tweet != None:
             print "Iteration: " + str(x)
-            post_tweet(api, ebook_tweet)
+            post_tweet(api, debug, ebook_tweet)
             break
             
 if __name__ == "__main__":

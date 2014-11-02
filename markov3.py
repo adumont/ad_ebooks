@@ -32,10 +32,15 @@ class MarkovChainer(object):
 
     def generate_sentence(self):
         self.build_dict()
-        word_size = len(self.words)
-        seed = random.randint(0, word_size - 3)
-        gen_words = []
-        seed_words = self.words_at_position(seed)[:-1]
+        word_size = len(self.words)        
+        
+        while True: # loop until we find a seed word that starts with a capital letter
+            seed = random.randint(0, word_size - 3)
+            gen_words = []
+            seed_words = self.words_at_position(seed)[:-1]
+            if seed_words[0][0].isupper():
+                break
+
         gen_words.extend(seed_words)
         while True:
             last_word_len = self.chain_size - 1

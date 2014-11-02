@@ -66,28 +66,36 @@ def grab_tweets(api, user, max_id=None):
 
     return source_tweets, max_id
 
-# try to build a tweet using markov chaining
-def try_build_tweet(source_tweets, order):
-    
-    mine = markov.MarkovChainer(order)
-    
+def markov_file_adder(mine, filename):
     # add additional words from words/ files to 
     # increase vocabulary
-    with open('words/jeeves.txt', "rt") as f:
+    with open(filename, "rt") as f:
         text = f.read()
     
     words = text.split('.')
     for sent in words:
         sent = filter_tweet(sent)
         mine.add_text(sent)
+        
+    return mine
     
+def markov_list_adder(mine, list):
     # ensure punctuation on tweets
-    for tweet in source_tweets:
-        if re.search('([\.\!\?\"\']$)', tweet):
+    for item in list:
+        if re.search('([\.\!\?\"\']$)', item):
             pass
         else:
-            tweet+="."
-        mine.add_text(tweet)
+            item+="."
+        mine.add_text(item)
+        
+    return mine
+
+# try to build a tweet using markov chaining
+def try_build_tweet(source_tweets, order):
+    
+    mine = markov.MarkovChainer(order)
+    mine = markov_file_adder(mine, 'words/jeeves.txt')
+    mine = markov_list_adder(mine, source_tweets)
     
     # let markov generate sentence
     ebook_tweet = mine.generate_sentence()

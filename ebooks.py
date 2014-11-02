@@ -110,10 +110,6 @@ def try_build_tweet(source_tweets, order):
                 ebook_tweet += " " + mine.generate_sentence()
             else:
                 ebook_tweet = ebook_tweet
-        elif rando == 1:
-            #say something crazy/prophetic in all caps
-            print "ALL THE THINGS"
-            ebook_tweet = ebook_tweet.upper()
 
     # throw out tweets that match anything from the source account.
     if ebook_tweet != None and len(ebook_tweet) < 110:

@@ -61,56 +61,56 @@ def grab_tweets(api, user, max_id=None):
     return source_tweets, max_id
 
 def try_build_tweet(source_tweets):
-	mine = markov.MarkovChainer(order)
-        for tweet in source_tweets:
-            if re.search('([\.\!\?\"\']$)', tweet):
-                pass
-            else:
-                tweet+="."
-            mine.add_text(tweet)
-            
-        ebook_tweet = mine.generate_sentence()
-
-        #randomly drop the last word, as Horse_ebooks appears to do.
-        if random.randint(0,4) == 0 and re.search(r'(in|to|from|for|with|by|our|of|your|around|under|beyond)\s\w+$', ebook_tweet) != None: 
-           print "Losing last word randomly"
-           ebook_tweet = re.sub(r'\s\w+.$','',ebook_tweet) 
-           print ebook_tweet
-    
-        #if a tweet is very short, this will randomly add a second sentence to it.
-        if ebook_tweet != None and len(ebook_tweet) < 40:
-            rando = random.randint(0,10)
-            if rando == 0 or rando == 7: 
-                print "Short tweet. Adding another sentence randomly"
-                newer_tweet = mine.generate_sentence()
-                if newer_tweet != None:
-                    ebook_tweet += " " + mine.generate_sentence()
-                else:
-                    ebook_tweet = ebook_tweet
-            elif rando == 1:
-                #say something crazy/prophetic in all caps
-                print "ALL THE THINGS"
-                ebook_tweet = ebook_tweet.upper()
-
-        #throw out tweets that match anything from the source account.
-        if ebook_tweet != None and len(ebook_tweet) < 110:
-            for tweet in source_tweets:
-                if ebook_tweet[:-1] not in tweet:
-                    continue
-                else: 
-                    print "TOO SIMILAR: " + ebook_tweet
-                    ebook_tweet = None
-                    break;
-
-        elif ebook_tweet == None:
-            print "EMPTY TWEET"
+    mine = markov.MarkovChainer(order)
+    for tweet in source_tweets:
+        if re.search('([\.\!\?\"\']$)', tweet):
+            pass
         else:
-            print "TOO LONG: " + ebook_tweet
-            ebook_tweet = None
-			
-	return ebook_tweet
+            tweet+="."
+        mine.add_text(tweet)
+        
+    ebook_tweet = mine.generate_sentence()
+
+    #randomly drop the last word, as Horse_ebooks appears to do.
+    if random.randint(0,4) == 0 and re.search(r'(in|to|from|for|with|by|our|of|your|around|under|beyond)\s\w+$', ebook_tweet) != None: 
+       print "Losing last word randomly"
+       ebook_tweet = re.sub(r'\s\w+.$','',ebook_tweet) 
+       print ebook_tweet
+
+    #if a tweet is very short, this will randomly add a second sentence to it.
+    if ebook_tweet != None and len(ebook_tweet) < 40:
+        rando = random.randint(0,10)
+        if rando == 0 or rando == 7: 
+            print "Short tweet. Adding another sentence randomly"
+            newer_tweet = mine.generate_sentence()
+            if newer_tweet != None:
+                ebook_tweet += " " + mine.generate_sentence()
+            else:
+                ebook_tweet = ebook_tweet
+        elif rando == 1:
+            #say something crazy/prophetic in all caps
+            print "ALL THE THINGS"
+            ebook_tweet = ebook_tweet.upper()
+
+    #throw out tweets that match anything from the source account.
+    if ebook_tweet != None and len(ebook_tweet) < 110:
+        for tweet in source_tweets:
+            if ebook_tweet[:-1] not in tweet:
+                continue
+            else: 
+                print "TOO SIMILAR: " + ebook_tweet
+                ebook_tweet = None
+                break;
+
+    elif ebook_tweet == None:
+        print "EMPTY TWEET"
+    else:
+        print "TOO LONG: " + ebook_tweet
+        ebook_tweet = None
+            
+    return ebook_tweet
     
-def get_source_tweets():
+def get_source_tweets(api):
     if STATIC_TEST==True:
         file = TEST_SOURCE
         print ">>> Generating from {0}".format(file)
@@ -121,7 +121,6 @@ def get_source_tweets():
         source_tweets = []
         for handle in SOURCE_ACCOUNTS:
             user=handle
-            api=connect()
             max_id=None
             for x in range(17)[1:]:
                 source_tweets_iter, max_id = grab_tweets(api,user,max_id)
@@ -129,12 +128,12 @@ def get_source_tweets():
             print "{0} tweets found in {1}".format(len(source_tweets), handle)
     return source_tweets
 	
-def post_tweet(ebook_tweet):
-	if DEBUG == False:
-		status = api.PostUpdate(ebook_tweet)
-		print status.text.encode('utf-8')
-	else:
-		print ebook_tweet
+def post_tweet(api, ebook_tweet):
+    if DEBUG == False:
+        status = api.PostUpdate(ebook_tweet)
+        print status.text.encode('utf-8')
+    else:
+        print ebook_tweet
 	
 if __name__=="__main__":
     order = ORDER
@@ -146,8 +145,13 @@ if __name__=="__main__":
     if guess > 0:
         print str(guess) + " No, sorry, not this time." #message if the random number fails.
         sys.exit()
+    
+    if DEBUG == False or STATIC_TEST == False:
+        api = connect()
+    else:
+        api = None
         
-    source_tweets = get_source_tweets()
+    source_tweets = get_source_tweets(api)
             
     if len(source_tweets) == 0:
         print "Error fetching tweets from Twitter. Aborting."
@@ -159,5 +163,5 @@ if __name__=="__main__":
         ebook_tweet = try_build_tweet(source_tweets)
         if ebook_tweet != None:
             print "Got a good tweet on iteration "+str(x)+": "+ebook_tweet
-            post_tweet(ebook_tweet)
+            post_tweet(api, ebook_tweet)
             break

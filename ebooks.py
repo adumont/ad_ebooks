@@ -3,7 +3,7 @@ import random
 import re
 import sys
 import twitter
-import markov2 as markov
+import markov3 as markov
 from htmlentitydefs import name2codepoint as n2c
 from local_settings import *
 

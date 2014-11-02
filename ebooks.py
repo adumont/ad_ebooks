@@ -3,7 +3,7 @@ import random
 import re
 import sys
 import twitter
-import markov
+import markov2 as markov
 from htmlentitydefs import name2codepoint as n2c
 from local_settings import *
 
@@ -73,14 +73,13 @@ def try_build_tweet(source_tweets, order):
     
     # add additional words from words/ files to 
     # increase vocabulary
-    mmj = open('words/jeeves.txt')
-    mmj.seek(0)
-    data = mmj.read()
-    words = data.split('.')
+    with open('words/jeeves.txt', "rt") as f:
+        text = f.read()
+    
+    words = text.split('.')
     for sent in words:
         sent = filter_tweet(sent)
         mine.add_text(sent)
-    mmj.close()
     
     # ensure punctuation on tweets
     for tweet in source_tweets:

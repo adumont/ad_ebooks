@@ -99,9 +99,11 @@ def try_build_tweet(source_tweets, order):
        print ebook_tweet
 
     # if a tweet is very short, this will randomly add a second sentence to it.
+    # odds of adding a sentence improve as the tweet gets shorter
     if ebook_tweet != None and len(ebook_tweet) < 40:
-        rando = random.randint(0,10)
-        if rando == 0 or rando == 7: 
+        max = (len(ebook_tweet) + 10 // 2) // 10
+        rando = random.randint(0,max)
+        if rando == 0: 
             print "Short tweet. Adding another sentence randomly"
             newer_tweet = mine.generate_sentence()
             if newer_tweet != None:
@@ -166,7 +168,10 @@ def post_tweet(api, ebook_tweet):
 
 def main(argv):
     order = ORDER # set tweet sanity
-    # check args for debug override
+    static_test = STATIC_TEST
+    debug = DEBUG
+    
+    # check args for debug override or static test override
     try:
         opts, args = getopt.getopt(argv,"hds")
     except getopt.GetoptError:
@@ -177,14 +182,14 @@ def main(argv):
             print 'ebooks.py [-d] [-s]'
             sys.exit()
         elif opt in ("-s", "--static"):
-            STATIC_TEST = True
+            static_test = True
             print 'Running a static test'
         elif opt in ("-d", "--debug"):
             print 'Running in debug mode'
-            DEBUG = True
+            debug = True
     
     # determine odds of running
-    if DEBUG==False:
+    if debug==False:
         guess = random.choice(range(ODDS))
     else:
         guess = 0
@@ -194,7 +199,7 @@ def main(argv):
         sys.exit()
 
     # connect to API if necessary
-    if DEBUG == False or STATIC_TEST == False:
+    if debug == False or static_test == False:
         api = connect()
     else:
         api = None

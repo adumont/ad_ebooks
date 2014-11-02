@@ -7,6 +7,7 @@ import markov
 from htmlentitydefs import name2codepoint as n2c
 from local_settings import *
 
+# build a (connected) Twitter API object
 def connect():
     api = twitter.Api(consumer_key=MY_CONSUMER_KEY,
                           consumer_secret=MY_CONSUMER_SECRET,
@@ -32,6 +33,7 @@ def entity(text):
             pass    
     return text
 
+# filter/clean tweets
 def filter_tweet(text):
     text = re.sub(r'\b(RT|MT) .+','',text) #take out anything after RT or MT
     text = re.sub(r'(\#|@|(h\/t)|(http))\S+','',text) #Take out URLs, hashtags, hts, etc.
@@ -43,17 +45,20 @@ def filter_tweet(text):
             text = re.sub(item, entity(item), text)    
     text = re.sub(r'\xe9', 'e', text) #take out accented e
     return text
-                     
+ 
+# get filtered tweets from a source account (in chunks)
 def grab_tweets(api, user, max_id=None):
     source_tweets=[]
     user_tweets = api.GetUserTimeline(screen_name=user, count=200, max_id=max_id, include_rts=True, trim_user=True, exclude_replies=True)
     returned_tweet_count = len(user_tweets)
     
-    if returned_tweet_count-1 < 0: #Seems to fix issue #6. Still not sure WHY this happens; API sometimes returns nothing.
+    # if api returned nothing, return an empty list and max_id of zero to prevent exception
+    if returned_tweet_count-1 < 0: 
         return source_tweets, 0
 
     max_id = user_tweets[returned_tweet_count-1].id-1
 
+    # filter source tweets
     for tweet in user_tweets:
         text = filter_tweet(tweet.text)
         if len(text) != 0:
@@ -61,15 +66,17 @@ def grab_tweets(api, user, max_id=None):
 
     return source_tweets, max_id
 
+# try to build a tweet using markov chaining
 def try_build_tweet(source_tweets, order):
     
     mine = markov.MarkovChainer(order)
     
-    # get a little crazy (add wodehouse's my man jeeves text)
+    # add additional words from words/ files to 
+    # increase vocabulary
     mmj = open('words/jeeves.txt')
     mmj.seek(0)
     data = mmj.read()
-    words = data.split()
+    words = data.split('.')
     for word in words:
         mine.add_text(word)
     mmj.close()
@@ -124,10 +131,11 @@ def try_build_tweet(source_tweets, order):
             
     return ebook_tweet
     
+# get source tweets to drive tweet-making
 def get_source_tweets(api):
     source_tweets = []
     # read strings from flat-file
-    if STATIC_TEST==True:
+    if api == None:
         file = TEST_SOURCE
         print ">>> Generating from {0}".format(file)
         string_list = open(file).readlines()
@@ -147,28 +155,33 @@ def get_source_tweets(api):
                 source_tweets += source_tweets_iter   
             print "{0} tweets found in {1}".format(len(source_tweets), handle)
     return source_tweets
-	
+
+# post tweet to twitter (or console)
 def post_tweet(api, ebook_tweet):
-    if DEBUG == False:
-        status = api.PostUpdate(ebook_tweet)
-        print status.text.encode('utf-8')
+    if api == None:
+        print "DEBUG: " + ebook_tweet
     else:
-        print ebook_tweet
+        status = api.PostUpdate(ebook_tweet)
+        print status.text.encode('utf-8')        
 
 def main(argv):
     order = ORDER # set tweet sanity
     # check args for debug override
     try:
-        opts, args = getopt.getopt(argv,"hd")
+        opts, args = getopt.getopt(argv,"hds")
     except getopt.GetoptError:
-      print 'ebooks.py [-d]'
+      print 'ebooks.py [-d] [-s]'
       sys.exit(2)
     for opt, arg in opts:
-      if opt == '-h':
-         print 'ebooks.py [-d]'
-         sys.exit()
-      elif opt in ("-d", "--debug"):
-         DEBUG = True
+        if opt == '-h':
+            print 'ebooks.py [-d] [-s]'
+            sys.exit()
+        elif opt in ("-s", "--static"):
+            STATIC_TEST = True
+            print 'Running a static test'
+        elif opt in ("-d", "--debug"):
+            print 'Running in debug mode'
+            DEBUG = True
     
     # determine odds of running
     if DEBUG==False:
@@ -177,7 +190,7 @@ def main(argv):
         guess = 0
 
     if guess > 0:
-        print str(guess) + " No, sorry, not this time." #message if the random number fails.
+        print str(guess) + " No, sorry, not this time."
         sys.exit()
 
     # connect to API if necessary
@@ -200,7 +213,7 @@ def main(argv):
     for x in range(10):	
         ebook_tweet = try_build_tweet(source_tweets, order)
         if ebook_tweet != None:
-            print "Got a good tweet on iteration "+str(x)+": "+ebook_tweet
+            print "Iteration: " + str(x)
             post_tweet(api, ebook_tweet)
             break
             

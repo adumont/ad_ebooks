@@ -77,8 +77,9 @@ def try_build_tweet(source_tweets, order):
     mmj.seek(0)
     data = mmj.read()
     words = data.split('.')
-    for word in words:
-        mine.add_text(word)
+    for sent in words:
+        sent = filter_tweet(sent)
+        mine.add_text(sent)
     mmj.close()
     
     # ensure punctuation on tweets

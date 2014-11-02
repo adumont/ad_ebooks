@@ -1,3 +1,4 @@
+import getopt
 import random
 import re
 import sys
@@ -60,11 +61,12 @@ def grab_tweets(api, user, max_id=None):
 
     return source_tweets, max_id
 
-def try_build_tweet(source_tweets):
+def try_build_tweet(source_tweets, order):
+    
     mine = markov.MarkovChainer(order)
     
-    #get a little crazy (add wodehouse's my man jeeves text)
-    mmj = open('jeeves.txt')
+    # get a little crazy (add wodehouse's my man jeeves text)
+    mmj = open('words/jeeves.txt')
     mmj.seek(0)
     data = mmj.read()
     words = data.split()
@@ -72,6 +74,7 @@ def try_build_tweet(source_tweets):
         mine.add_text(word)
     mmj.close()
     
+    # ensure punctuation on tweets
     for tweet in source_tweets:
         if re.search('([\.\!\?\"\']$)', tweet):
             pass
@@ -79,15 +82,16 @@ def try_build_tweet(source_tweets):
             tweet+="."
         mine.add_text(tweet)
     
+    # let markov generate sentence
     ebook_tweet = mine.generate_sentence()
 
-    #randomly drop the last word, as Horse_ebooks appears to do.
+    # randomly drop the last word, as Horse_ebooks appears to do.
     if random.randint(0,4) == 0 and re.search(r'(in|to|from|for|with|by|our|of|your|around|under|beyond)\s\w+$', ebook_tweet) != None: 
        print "Losing last word randomly"
        ebook_tweet = re.sub(r'\s\w+.$','',ebook_tweet) 
        print ebook_tweet
 
-    #if a tweet is very short, this will randomly add a second sentence to it.
+    # if a tweet is very short, this will randomly add a second sentence to it.
     if ebook_tweet != None and len(ebook_tweet) < 40:
         rando = random.randint(0,10)
         if rando == 0 or rando == 7: 
@@ -102,7 +106,7 @@ def try_build_tweet(source_tweets):
             print "ALL THE THINGS"
             ebook_tweet = ebook_tweet.upper()
 
-    #throw out tweets that match anything from the source account.
+    # throw out tweets that match anything from the source account.
     if ebook_tweet != None and len(ebook_tweet) < 110:
         for tweet in source_tweets:
             if ebook_tweet[:-1] not in tweet:
@@ -122,7 +126,7 @@ def try_build_tweet(source_tweets):
     
 def get_source_tweets(api):
     source_tweets = []
-    
+    # read strings from flat-file
     if STATIC_TEST==True:
         file = TEST_SOURCE
         print ">>> Generating from {0}".format(file)
@@ -133,6 +137,7 @@ def get_source_tweets(api):
             text = filter_tweet(tweet)
             if len(text) != 0:
                 source_tweets.append(text)
+    # read tweets from source accounts
     else:
         for handle in SOURCE_ACCOUNTS:
             user=handle
@@ -149,9 +154,23 @@ def post_tweet(api, ebook_tweet):
         print status.text.encode('utf-8')
     else:
         print ebook_tweet
-	
-if __name__=="__main__":
-    order = ORDER
+
+def main(argv):
+    order = ORDER # set tweet sanity
+    # check args for debug override
+    try:
+        opts, args = getopt.getopt(argv,"hd")
+    except getopt.GetoptError:
+      print 'ebooks.py [-d]'
+      sys.exit(2)
+    for opt, arg in opts:
+      if opt == '-h':
+         print 'ebooks.py [-d]'
+         sys.exit()
+      elif opt in ("-d", "--debug"):
+         DEBUG = True
+    
+    # determine odds of running
     if DEBUG==False:
         guess = random.choice(range(ODDS))
     else:
@@ -160,23 +179,30 @@ if __name__=="__main__":
     if guess > 0:
         print str(guess) + " No, sorry, not this time." #message if the random number fails.
         sys.exit()
-    
+
+    # connect to API if necessary
     if DEBUG == False or STATIC_TEST == False:
         api = connect()
     else:
         api = None
         
+    # get tweets from the source account / flat file
     source_tweets = get_source_tweets(api)
-            
+    
+    # make sure we have tweets to work with
     if len(source_tweets) == 0:
         print "Error fetching tweets from Twitter. Aborting."
         sys.exit()
     else:        
         print "{0} total tweets found".format(len(source_tweets))
         
-    for x in range(10):	#Try to build a good tweet from the source_tweets. If at first you don't succeed...
-        ebook_tweet = try_build_tweet(source_tweets)
+    # try to build a good tweet from the source_tweets. If at first you don't succeed...
+    for x in range(10):	
+        ebook_tweet = try_build_tweet(source_tweets, order)
         if ebook_tweet != None:
             print "Got a good tweet on iteration "+str(x)+": "+ebook_tweet
             post_tweet(api, ebook_tweet)
             break
+            
+if __name__ == "__main__":
+    main(sys.argv[1:])

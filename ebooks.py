@@ -31,17 +31,17 @@ def entity(text):
             pass    
     return text
 
-def filter_tweet(tweet):
-    tweet.text = re.sub(r'\b(RT|MT) .+','',tweet.text) #take out anything after RT or MT
-    tweet.text = re.sub(r'(\#|@|(h\/t)|(http))\S+','',tweet.text) #Take out URLs, hashtags, hts, etc.
-    tweet.text = re.sub(r'\n','', tweet.text) #take out new lines.
-    tweet.text = re.sub(r'\"|\(|\)', '', tweet.text) #take out quotes.
-    htmlsents = re.findall(r'&\w+;', tweet.text)
+def filter_tweet(text):
+    text = re.sub(r'\b(RT|MT) .+','',text) #take out anything after RT or MT
+    text = re.sub(r'(\#|@|(h\/t)|(http))\S+','',text) #Take out URLs, hashtags, hts, etc.
+    text = re.sub(r'\n','', text) #take out new lines.
+    text = re.sub(r'\"|\(|\)', '', text) #take out quotes.
+    htmlsents = re.findall(r'&\w+;', text)
     if len(htmlsents) > 0 :
         for item in htmlsents:
-            tweet.text = re.sub(item, entity(item), tweet.text)    
-    tweet.text = re.sub(r'\xe9', 'e', tweet.text) #take out accented e
-    return tweet.text
+            text = re.sub(item, entity(item), text)    
+    text = re.sub(r'\xe9', 'e', text) #take out accented e
+    return text
                      
 def grab_tweets(api, user, max_id=None):
     source_tweets=[]
@@ -54,21 +54,31 @@ def grab_tweets(api, user, max_id=None):
     max_id = user_tweets[returned_tweet_count-1].id-1
 
     for tweet in user_tweets:
-        tweet.text = filter_tweet(tweet)
-        if len(tweet.text) != 0:
-            source_tweets.append(tweet.text)
+        text = filter_tweet(tweet.text)
+        if len(text) != 0:
+            source_tweets.append(text)
 
     return source_tweets, max_id
 
 def try_build_tweet(source_tweets):
     mine = markov.MarkovChainer(order)
+    
+    #get a little crazy (add wodehouse's my man jeeves text)
+    mmj = open('jeeves.txt')
+    mmj.seek(0)
+    data = mmj.read()
+    words = data.split()
+    for word in words:
+        mine.add_text(word)
+    mmj.close()
+    
     for tweet in source_tweets:
         if re.search('([\.\!\?\"\']$)', tweet):
             pass
         else:
             tweet+="."
         mine.add_text(tweet)
-        
+    
     ebook_tweet = mine.generate_sentence()
 
     #randomly drop the last word, as Horse_ebooks appears to do.
@@ -111,14 +121,19 @@ def try_build_tweet(source_tweets):
     return ebook_tweet
     
 def get_source_tweets(api):
+    source_tweets = []
+    
     if STATIC_TEST==True:
         file = TEST_SOURCE
         print ">>> Generating from {0}".format(file)
         string_list = open(file).readlines()
         for item in string_list:
-            source_tweets = item.split(",")
+            temp_tweets = item.split(",")
+        for tweet in temp_tweets:
+            text = filter_tweet(tweet)
+            if len(text) != 0:
+                source_tweets.append(text)
     else:
-        source_tweets = []
         for handle in SOURCE_ACCOUNTS:
             user=handle
             max_id=None

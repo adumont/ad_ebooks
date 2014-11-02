@@ -94,7 +94,7 @@ def markov_list_adder(mine, list):
 def try_build_tweet(source_tweets, order):
     
     mine = markov.MarkovChainer(order)
-    mine = markov_file_adder(mine, 'words/jeeves.txt')
+    #mine = markov_file_adder(mine, 'words/jeeves.txt')
     mine = markov_list_adder(mine, source_tweets)
     
     # let markov generate sentence

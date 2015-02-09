@@ -174,7 +174,7 @@ def get_source_tweets(api, static_test):
             for x in range(17)[1:]:
                 source_tweets_iter, max_id = grab_tweets(api,user,max_id)
                 source_tweets += source_tweets_iter   
-            print "{0} tweets found in {1}".format(len(source_tweets), handle)
+            print "{0} tweets found in {1}".format(len(source_tweets_iter), handle)
     return source_tweets
 
 # post tweet to twitter (or console)

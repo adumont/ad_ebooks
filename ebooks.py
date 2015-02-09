@@ -53,11 +53,11 @@ def entity(text):
 
 # filter/clean tweets
 def filter_tweet(text):
-    text = re.sub(r'\b(RT|MT) .+','',text) #take out anything after RT or MT
+    text = re.sub(r'\b(RT|MT) ','',text) #take out RT or MT
     text = re.sub(r'(\#|@|(h\/t)|(http))\S+','',text) #Take out URLs, hashtags, hts, etc.
     text = re.sub(r'\n','', text) #take out new lines.
     text = re.sub(r'\"|\(|\)', '', text) #take out quotes.
-    text = re.sub(r'\s+\.', '\.', text) #remove spaces before dot
+    text = re.sub(r'\S+\.', '\.', text) #remove spaces before dot
     htmlsents = re.findall(r'&\w+;', text)
     if len(htmlsents) > 0 :
         for item in htmlsents:

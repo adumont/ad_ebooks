@@ -21,6 +21,10 @@ DEBUG = os.getenv('DEBUG', False) == "True"
 STATIC_TEST = os.getenv('STATIC_TEST', False) == "True" 
 TEST_SOURCE = os.getenv('TEST_SOURCE', '.txt')
 
+# some API Parameters for user_timeline
+INCLUDE_RTS = os.getenv('INCLUDE_RTS', True) == "True"
+EXCLUDE_REPLIES = os.getenv('EXCLUDE_REPLIES', False) == "True"
+
 # build a (connected) Twitter API object
 def connect():
     api = twitter.Api(consumer_key=MY_CONSUMER_KEY,
@@ -64,7 +68,7 @@ def filter_tweet(text):
 # get filtered tweets from a source account (in chunks)
 def grab_tweets(api, user, max_id=None):
     source_tweets=[]
-    user_tweets = api.GetUserTimeline(screen_name=user, count=200, max_id=max_id, include_rts=True, trim_user=True, exclude_replies=True)
+    user_tweets = api.GetUserTimeline(screen_name=user, count=200, max_id=max_id, include_rts=INCLUDE_RTS, trim_user=True, exclude_replies=EXCLUDE_REPLIES)
     returned_tweet_count = len(user_tweets)
     
     # if api returned nothing, return an empty list and max_id of zero to prevent exception

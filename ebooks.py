@@ -1,3 +1,4 @@
+import os
 import getopt
 import random
 import re
@@ -5,7 +6,20 @@ import sys
 import twitter
 import markov3 as markov
 from htmlentitydefs import name2codepoint as n2c
-from local_settings import *
+
+# Load Heroku Config Variables (https://devcenter.heroku.com/articles/config-vars)
+MY_CONSUMER_KEY = os.environ['MY_CONSUMER_KEY']
+MY_CONSUMER_SECRET = os.environ['MY_CONSUMER_SECRET']
+MY_ACCESS_TOKEN_KEY = os.environ['MY_ACCESS_TOKEN_KEY']
+MY_ACCESS_TOKEN_SECRET = os.environ['MY_ACCESS_TOKEN_SECRET']
+SOURCE_ACCOUNTS = os.environ['SOURCE_ACCOUNTS'].split(',')
+TWEET_ACCOUNT = os.environ['TWEET_ACCOUNT']
+
+ODDS = os.getenv('ODDS', 8)
+ORDER = os.getenv('ORDER', 2)
+DEBUG = os.getenv('DEBUG', False)
+STATIC_TEST = os.getenv('STATIC_TEST', False)
+TEST_SOURCE = os.getenv('TEST_SOURCE', '.txt')
 
 # build a (connected) Twitter API object
 def connect():

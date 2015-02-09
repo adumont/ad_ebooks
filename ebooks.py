@@ -208,7 +208,7 @@ def main(argv):
             debug = True
     
     # determine odds of running
-    if debug==False:
+    if ODDS>0 and debug==False:
         guess = random.choice(range(ODDS))
     else:
         guess = 0

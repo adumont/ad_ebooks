@@ -144,7 +144,7 @@ def try_build_tweet(source_tweets, order):
             if ebook_tweet[:-1] not in tweet:
                 continue
             else: 
-                print "TOO SIMILAR: " + ebook_tweet
+                print "TOO SIMILAR: " + ebook_tweet + ">>" + tweet
                 ebook_tweet = None
                 break;
 

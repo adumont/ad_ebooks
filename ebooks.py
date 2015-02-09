@@ -15,10 +15,10 @@ MY_ACCESS_TOKEN_SECRET = os.environ['MY_ACCESS_TOKEN_SECRET']
 SOURCE_ACCOUNTS = os.environ['SOURCE_ACCOUNTS'].split(',')
 TWEET_ACCOUNT = os.environ['TWEET_ACCOUNT']
 
-ODDS = os.getenv('ODDS', 8)
-ORDER = os.getenv('ORDER', 2)
-DEBUG = os.getenv('DEBUG', False)
-STATIC_TEST = os.getenv('STATIC_TEST', False)
+ODDS = int(os.getenv('ODDS', 8))
+ORDER = int(os.getenv('ORDER', 2))
+DEBUG = os.getenv('DEBUG', False) == "True"
+STATIC_TEST = os.getenv('STATIC_TEST', False) == "True" 
 TEST_SOURCE = os.getenv('TEST_SOURCE', '.txt')
 
 # build a (connected) Twitter API object

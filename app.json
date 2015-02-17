@@ -1,0 +1,49 @@
+{
+    "name": "Heroku eBooks",
+    "description": "A python app to post pseudo-random tweets to an _ebooks version of your Twitter account",
+    "keywords": [
+        "ebooks",
+        "random",
+        "twitter"
+    ],
+    "repository": "https://github.com/adumont/ad_ebooks",
+    "env": {
+        "MY_CONSUMER_KEY": {
+            "description": "Your Twitter app Consumer Key",
+            "value": ""
+        },
+        "MY_CONSUMER_SECRET": {
+            "description": "Your Twitter app Consumer Secret",
+            "value": ""
+        },
+        "MY_ACCESS_TOKEN_KEY": {
+            "description": "Your user Access Token Key to Twitter for this app"
+        },
+        "MY_ACCESS_TOKEN_SECRET": {
+            "description": "Your user Access Token Secret to Twitter for this app"
+        },
+        "SOURCE_ACCOUNTS": {
+            "description": "List of twitter accounts (no @) to take inspiration from. Separated by comma"
+        },
+        "TWEET_ACCOUNT": {
+            "description": "Name of the Twitter account (no @) to post to"
+        },
+        "ODDS": {
+            "description": "How often (in hours) to tweet, in average. 0=always",
+            "value": "8"
+        },
+        "ORDER": {
+            "description": "Int from 2 (more random) to 4 (more meaningful)",
+            "value": "3",
+            "required": false
+        },
+        "DEBUG": {
+            "description": "If True, won't tweet. Set to False for normal use",
+            "value": "False",
+            "required": false
+        }
+    },
+    "addons": [
+        "scheduler:standard"
+    ]
+}

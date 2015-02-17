@@ -1,6 +1,4 @@
-# Warning
-
-I'm no Python developer. Use caution with this script; I very well might have done something insanely stupid.
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
 
 # kyofu_ebooks
 
